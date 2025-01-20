@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"gitlab.com/gridio/test-assignment/pkg/chargeamps/utils"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -21,9 +22,10 @@ func main() {
 
 	ctx := context.Background()
 	logger := logrus.WithField("origin", "test-connector")
+	apiClient := utils.NewAPIClient("https://eapi.charge.space/api/v5/", logger)
 
 	// First log in to charge amps and get access tokens
-	id, err := identity.Login(logger, username, password)
+	id, err := identity.Login(logger, apiClient, ctx, username, password)
 	if err != nil {
 		logger.WithError(err).Error("failed to create identity")
 
@@ -32,7 +34,7 @@ func main() {
 
 	secretAgent := internal.NewSecretAgent(id.String())
 
-	newIntegrationFactory := backend.Factory(logger)
+	newIntegrationFactory := backend.Factory(logger, apiClient)
 
 	// 1. Now create new integration instance
 	newIntegration := newIntegrationFactory(userID, secretAgent)
