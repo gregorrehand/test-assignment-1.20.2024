@@ -35,13 +35,13 @@ type internalToken struct {
 }
 
 type refreshTokenPayload struct {
-	token        string `json:"token"`
-	refreshToken string `json:"refreshToken"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type loginPayload struct {
-	email    string `json:"email"`
-	password string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func CreateFromSecretAgent(logger logrus.FieldLogger, sa internal.SecretAgent) *TokenSource {
@@ -55,16 +55,18 @@ func CreateFromSecretAgent(logger logrus.FieldLogger, sa internal.SecretAgent) *
 		logger.Error("Failed to unmarshal secret agent data: ", err)
 		return nil
 	}
+
 	t.token = unmarshalled
 
 	return &t
 }
 
-func Login(logger logrus.FieldLogger, apiClient *utils.APIClient, ctx context.Context, username, password string) (*TokenSource, error) {
+func Login(ctx context.Context, logger logrus.FieldLogger, apiClient *utils.APIClient, username, password string) (*TokenSource, error) {
 	t := TokenSource{}
+
 	payload := loginPayload{
-		email:    username,
-		password: password,
+		Email:    username,
+		Password: password,
 	}
 
 	err := apiClient.PostWithoutToken(ctx, "auth/login", payload, &t)
@@ -88,20 +90,20 @@ func (t *TokenSource) IsUnauthorized() bool {
 
 func (t *TokenSource) String() string {
 	b, _ := json.Marshal(t.token)
-
 	return string(b)
 }
 
 // TODO: Write a function that retrieves access and refresh tokens from chargeamps and stores them in internalToken
 // 	struct
 
-func GetRefreshToken(logger logrus.FieldLogger, apiClient *utils.APIClient, ctx context.Context, existingToken, refreshToken string) (*internalToken, error) {
+func getRefreshToken(ctx context.Context, logger logrus.FieldLogger, apiClient *utils.APIClient, existingToken, refreshToken string) (*internalToken, error) {
 	payload := refreshTokenPayload{
-		token:        existingToken,
-		refreshToken: refreshToken,
+		Token:        existingToken,
+		RefreshToken: refreshToken,
 	}
 
 	var token internalToken
+
 	err := apiClient.PostWithoutToken(ctx, "auth/refreshToken", payload, &token)
 	if err != nil {
 		logger.Error("Failed to fetch refresh token: ", err)

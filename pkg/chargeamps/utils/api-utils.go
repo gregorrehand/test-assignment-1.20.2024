@@ -12,6 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const ClientTimeout = 10
+
 type APIClient struct {
 	BaseURL    string
 	HTTPClient *http.Client
@@ -22,7 +24,7 @@ func NewAPIClient(baseURL string, logger logrus.FieldLogger) *APIClient {
 	return &APIClient{
 		BaseURL: baseURL,
 		HTTPClient: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: ClientTimeout * time.Second,
 		},
 		Logger: logger,
 	}
@@ -52,6 +54,7 @@ func (api *APIClient) Post(ctx context.Context, endpoint string, token string, p
 		api.Logger.Error("Failed to create POST request: ", err)
 		return err
 	}
+
 	api.addHeaders(req, token)
 	return api.handleRequest(req, result)
 }
@@ -64,6 +67,7 @@ func (api *APIClient) addHeaders(req *http.Request, token string) {
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
+
 	req.Header.Set("Content-Type", "application/json")
 }
 

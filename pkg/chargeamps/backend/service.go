@@ -3,6 +3,7 @@ package backend
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/gridio/test-assignment/internal"
 	"gitlab.com/gridio/test-assignment/pkg/chargeamps/identity"
@@ -51,10 +52,11 @@ func (b *Backend) DoDeviceListRequest(ctx context.Context) ([]internal.DeviceMet
 	// TODO implement me
 	// Personally, I would not put any identity logic in the backend service, but since the methods were already provided I did not remove them.
 	if b.id.IsUnauthorized() {
-		return nil, errors.New("unauthorized access")
+		return nil, unAuthorizedAccessError("DoDeviceListRequest")
 	}
 
 	var devices []internal.DeviceMetadata
+
 	err := b.apiClient.Get(ctx, "chargepoints/owned", b.id.AccessToken(), &devices)
 	if err != nil {
 		b.logger.Error("Failed to fetch device list: ", err)
@@ -69,13 +71,20 @@ func (b *Backend) IsUnauthorized() bool {
 	return b.id.IsUnauthorized()
 }
 
+var errUnauthorized = errors.New("unauthorized access")
+
+func unAuthorizedAccessError(op string) error {
+	return fmt.Errorf("UnAuthorizedAccess %w : %s", errUnauthorized, op)
+}
+
 func (b *Backend) DoChargerStatusRequest(ctx context.Context, id internal.PhysicalID) (*internal.ChargerStatus, error) {
 	// TODO implement me
 	if b.id.IsUnauthorized() {
-		return nil, errors.New("unauthorized access")
+		return nil, unAuthorizedAccessError("DoChargerStatusRequest")
 	}
 
 	var status internal.ChargerStatus
+
 	endpoint := "chargepoints/" + string(id) + "/status"
 	if err := b.apiClient.Get(ctx, endpoint, b.id.AccessToken(), &status); err != nil {
 		b.logger.Error("Failed to fetch charger status: ", err)
@@ -91,7 +100,6 @@ func (b *Backend) StartCharge(ctx context.Context, id internal.PhysicalID, p int
 	panic("implement me")
 
 }
-
 func (b *Backend) Stop(ctx context.Context, id internal.PhysicalID) error {
 	// TODO implement me
 	panic("implement me")
