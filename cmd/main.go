@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"gitlab.com/gridio/test-assignment/internal"
+	"gitlab.com/gridio/test-assignment/pkg/chargeamps/backend"
 	"gitlab.com/gridio/test-assignment/pkg/chargeamps/utils"
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"gitlab.com/gridio/test-assignment/internal"
-	"gitlab.com/gridio/test-assignment/pkg/chargeamps/backend"
 	"gitlab.com/gridio/test-assignment/pkg/chargeamps/identity"
 )
 
@@ -19,13 +19,14 @@ const (
 func main() {
 	username, _ := os.LookupEnv("USERNAME")
 	password, _ := os.LookupEnv("PASSWORD")
+	apiKey, _ := os.LookupEnv("API_KEY")
 
 	ctx := context.Background()
 	logger := logrus.WithField("origin", "test-connector")
-	apiClient := utils.NewAPIClient("https://eapi.charge.space/api/v5/", logger)
+	apiClient := utils.NewAPIClient("https://eapi.charge.space/api/v5/", apiKey, logger)
 
 	// First log in to charge amps and get access tokens
-	id, err := identity.Login(logger, apiClient, ctx, username, password)
+	id, err := identity.Login(ctx, logger, apiClient, username, password)
 	if err != nil {
 		logger.WithError(err).Error("failed to create identity")
 

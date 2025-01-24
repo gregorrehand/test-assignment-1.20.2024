@@ -16,13 +16,15 @@ const ClientTimeout = 10
 
 type APIClient struct {
 	BaseURL    string
+	apiKey     string
 	HTTPClient *http.Client
 	Logger     logrus.FieldLogger
 }
 
-func NewAPIClient(baseURL string, logger logrus.FieldLogger) *APIClient {
+func NewAPIClient(baseURL, apiKey string, logger logrus.FieldLogger) *APIClient {
 	return &APIClient{
 		BaseURL: baseURL,
+		apiKey:  apiKey,
 		HTTPClient: &http.Client{
 			Timeout: ClientTimeout * time.Second,
 		},
@@ -69,6 +71,7 @@ func (api *APIClient) addHeaders(req *http.Request, token string) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("apiKey", api.apiKey)
 }
 
 func (api *APIClient) handleRequest(req *http.Request, result interface{}) error {

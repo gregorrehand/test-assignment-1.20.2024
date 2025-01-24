@@ -24,7 +24,7 @@ type internalToken struct {
 		LastName  string `json:"lastName"`
 		Email     string `json:"email"`
 		Mobile    string `json:"mobile"`
-		RfidTags  []struct {
+		RfidTags  *[]struct {
 			Active         bool   `json:"active"`
 			Rfid           string `json:"rfid"`
 			RfidDec        string `json:"rfidDec"`
@@ -69,7 +69,7 @@ func Login(ctx context.Context, logger logrus.FieldLogger, apiClient *utils.APIC
 		Password: password,
 	}
 
-	err := apiClient.PostWithoutToken(ctx, "auth/login", payload, &t)
+	err := apiClient.PostWithoutToken(ctx, "auth/login", payload, &t.token)
 	if err != nil {
 		logger.Error("Failed to log in: ", err)
 		return nil, err
